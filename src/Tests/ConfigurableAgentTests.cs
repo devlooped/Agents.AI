@@ -377,6 +377,35 @@ public class ConfigurableAgentTests
         Assert.Equal("gpt-5", options?.ChatOptions?.ModelId);
     }
 
+    [Fact]
+    public void OptionsModelIdTakesPrecedenceOverAgentModel()
+    {
+        var builder = new HostApplicationBuilder();
+
+        builder.Configuration.AddToml(
+            """
+            [ai.clients.openai]
+            modelid = "gpt-4.1"
+            apikey = "sk-asdf"
+
+            [ai.agents.chat]
+            description = "Chat"
+            client = "openai"
+            model = "gpt-5"
+
+            [ai.agents.chat.options]
+            modelid = "o3"
+            """);
+
+        builder.AddAIAgents();
+        var app = builder.Build();
+
+        var agent = app.Services.GetRequiredKeyedService<AIAgent>("chat");
+        var options = agent.GetService<ChatClientAgentOptions>();
+
+        Assert.Equal("o3", options?.ChatOptions?.ModelId);
+    }
+
     static async Task<AIContext> AggregateContextAsync(IReadOnlyList<AIContextProvider> providers)
     {
         var merged = new AIContext();
