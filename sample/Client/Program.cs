@@ -1,5 +1,6 @@
-﻿using System.Net.Http.Json;
-using Devlooped.Extensions.AI.OpenAI;
+﻿using System.ClientModel;
+using System.Net.Http.Json;
+using OpenAI;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
@@ -29,10 +30,11 @@ var app = builder.Build(async (IServiceProvider services, CancellationToken canc
         .UseConverter(a => $"{a.Name}: {a.Description ?? ""}")
         .AddChoices(agents));
 
-    var chat = new OpenAIChatClient("none", "default", new OpenAI.OpenAIClientOptions
+    var chat = new OpenAIClient(new ApiKeyCredential("none"), new OpenAIClientOptions
     {
         Endpoint = new Uri($"{baseUrl}/{selectedAgent.Name}/v1")
-    }).AsBuilder().UseOpenTelemetry().UseJsonConsoleLogging().Build(services);
+    }).GetChatClient("default").AsIChatClient().AsBuilder()
+    .UseOpenTelemetry().UseJsonConsoleLogging().Build(services);
 
     var history = new List<ChatMessage>();
 
@@ -71,7 +73,8 @@ var app = builder.Build(async (IServiceProvider services, CancellationToken canc
     AnsiConsole.MarkupLine($":robot: Shutting down...");
 });
 
-Console.WriteLine("Powered by Smith");
+Console.WriteLine("Press [Enter] to connect");
+Console.ReadLine();
 
 await app.RunAsync();
 

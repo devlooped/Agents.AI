@@ -1,12 +1,17 @@
 {
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
-    "http": {
+    "https": {
       "commandName": "Project",
       "dotnetRunMessages": true,
-      "applicationUrl": "http://server.dev.localhost:5117",
+      "applicationUrl": "https://localhost:5117",
+      "launchBrowser": true,
+      "launchUrl": "agents",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "DOTNET_ENVIRONMENT": "Development"
+        //"OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
+        //"OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
       }
     }
   }

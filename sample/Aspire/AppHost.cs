@@ -1,8 +1,9 @@
-using Projects;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
-var server = builder.AddProject<Server>("server");
+var server = builder.AddProject<Projects.Server>("server")
+    //.WithArgs("--urls", "http://server.dev.localhost:4242")
+    .WithHttpHealthCheck("/health")
+    .WithExternalHttpEndpoints();
 
 // For now, we can't really launch a console project and have its terminal shown.
 // See https://github.com/dotnet/aspire/issues/8440

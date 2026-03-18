@@ -1,9 +1,8 @@
 ﻿using System.Text;
-using Devlooped.Agents.AI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 
-namespace Devlooped;
+namespace Devlooped.Agents.AI;
 
 public class Misc
 {

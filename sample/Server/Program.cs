@@ -1,11 +1,9 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
-using Devlooped.Extensions.AI;
 using Microsoft.Agents.AI;
-using Microsoft.Agents.AI.Hosting;
-using Microsoft.Agents.AI.Hosting.OpenAI;
 using Microsoft.Extensions.AI;
 using Spectre.Console;
+using Tomlyn.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,10 +15,12 @@ if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 #endif
 
 builder.AddServiceDefaults();
+builder.Configuration.AddTomlFile("ai.toml", optional: false, reloadOnChange: true);
 builder.ConfigureReload();
+builder.Services.AddProblemDetails();
 
 // 👇 showcases using dynamic AI context from configuration
-builder.Services.AddKeyedSingleton("get_date", AIFunctionFactory.Create(() => DateTimeOffset.UtcNow, "get_date"));
+builder.Services.AddKeyedSingleton("get_date", AIFunctionFactory.Create(() => DateTimeOffset.UtcNow, "get_date", "Get the current date"));
 // dummy ones for illustration
 builder.Services.AddKeyedSingleton("create_order", AIFunctionFactory.Create(() => "OK", "create_order"));
 builder.Services.AddKeyedSingleton("cancel_order", AIFunctionFactory.Create(() => "OK", "cancel_order"));
@@ -34,10 +34,13 @@ builder.Services.AddKeyedSingleton<AIContextProvider, NotesContextProvider>("not
 builder.AddAIAgents()
     .WithTools<NotesTools>();
 
+//builder.WebHost.UseUrls("https://server.dev.localhost:5117");
+
 var app = builder.Build();
 
 // From ServiceDefaults.cs
 app.MapDefaultEndpoints();
+app.UseExceptionHandler();
 
 #if DEBUG
 // 👇 render all configured agents
@@ -45,16 +48,18 @@ await app.Services.RenderAgentsAsync(builder.Services);
 #endif
 
 // Map each agent's endpoints via response API
-var catalog = app.Services.GetRequiredService<AgentCatalog>();
-// List configured agents
-await foreach (var agent in catalog.GetAgentsAsync())
+foreach (var agentName in builder.Services.AsEnumerable()
+    .Where(x => x.ServiceType == typeof(AIAgent) && x.IsKeyedService && x.ServiceKey is string)
+    .Select(x => (string)x.ServiceKey!)
+    .Distinct(StringComparer.OrdinalIgnoreCase))
 {
+    var agent = app.Services.GetRequiredKeyedService<AIAgent>(agentName);
     if (agent.Name != null)
-        app.MapOpenAIResponses(agent.Name);
+        app.MapOpenAIResponses(agent, agent.Name);
 }
 
 // Map the agents HTTP endpoints
-app.MapAgentDiscovery("/agents");
+app.MapAgentDiscovery(builder.Services, "/agents");
 
 if (!app.Environment.IsProduction())
 {

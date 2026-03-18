@@ -3,7 +3,7 @@ using ModelContextProtocol.Server;
 
 public class NotesContextProvider(NotesTools notes) : AIContextProvider
 {
-    public override ValueTask<AIContext> InvokingAsync(InvokingContext context, CancellationToken cancellationToken = default)
+    protected override ValueTask<AIContext> ProvideAIContextAsync(InvokingContext context, CancellationToken cancellationToken = default)
         => ValueTask.FromResult(new AIContext
         {
             Instructions =
