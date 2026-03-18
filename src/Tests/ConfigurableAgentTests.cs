@@ -440,6 +440,69 @@ public class ConfigurableAgentTests
         return merged;
     }
 
+    [Fact]
+    public void SkillsWildcardAddsFileAgentSkillsProvider()
+    {
+        var builder = new HostApplicationBuilder();
+
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["ai:clients:chat:modelid"] = "gpt-4.1-nano",
+            ["ai:clients:chat:apikey"] = "sk-asdfasdf",
+            ["ai:agents:bot:client"] = "chat",
+            ["ai:agents:bot:skills:0"] = "*",
+        });
+
+        builder.AddAIAgents();
+
+        var app = builder.Build();
+        var agent = app.Services.GetRequiredKeyedService<AIAgent>("bot");
+        var options = agent.GetService<ChatClientAgentOptions>();
+
+        Assert.NotNull(options?.AIContextProviders);
+        Assert.Contains(options.AIContextProviders, p => p is FileAgentSkillsProvider);
+    }
+
+    [Fact]
+    public void SkillsNotConfiguredDoesNotAddFileAgentSkillsProvider()
+    {
+        var builder = new HostApplicationBuilder();
+
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["ai:clients:chat:modelid"] = "gpt-4.1-nano",
+            ["ai:clients:chat:apikey"] = "sk-asdfasdf",
+            ["ai:agents:bot:client"] = "chat",
+        });
+
+        builder.AddAIAgents();
+
+        var app = builder.Build();
+        var agent = app.Services.GetRequiredKeyedService<AIAgent>("bot");
+        var options = agent.GetService<ChatClientAgentOptions>();
+
+        Assert.DoesNotContain(options?.AIContextProviders ?? [], p => p is FileAgentSkillsProvider);
+    }
+
+    [Fact]
+    public void SkillsInvalidValueThrows()
+    {
+        var builder = new HostApplicationBuilder();
+
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["ai:clients:chat:modelid"] = "gpt-4.1-nano",
+            ["ai:clients:chat:apikey"] = "sk-asdfasdf",
+            ["ai:agents:bot:client"] = "chat",
+            ["ai:agents:bot:skills:0"] = "some-path",
+        });
+
+        builder.AddAIAgents();
+
+        var app = builder.Build();
+        Assert.Throws<InvalidOperationException>(() => app.Services.GetRequiredKeyedService<AIAgent>("bot"));
+    }
+
     sealed class TestAIContextProvider(AIContext context) : AIContextProvider
     {
         readonly AIContext providedContext = context;

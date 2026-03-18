@@ -254,6 +254,40 @@ builder.Services.AddMcpServer().WithTools<NotesTools>();
 builder.AddAIAgents().WithTools<NotesTools>();
 ```
 
+### Agent Skills
+
+Agents can be equipped with [Agent Skills](https://learn.microsoft.com/en-us/agent-framework/agents/skills) 
+— portable, file-based packages of instructions and resources that give agents specialised capabilities. 
+To enable file-based skills for an agent, add a `skills` array to its configuration section:
+
+```toml
+[ai.agents.support]
+description = "An AI agent that helps with customer support."
+instructions = "..."
+client = "grok"
+skills = ["*"]
+```
+
+The `"*"` entry is a wildcard that instructs the agent to discover all skills located in the 
+`skills/` folder relative to the application's base directory (`AppContext.BaseDirectory/skills`).
+
+Each skill is a subdirectory containing a `SKILL.md` file (see the 
+[Agent Skills specification](https://agentskills.io/) for the full format). 
+The `FileAgentSkillsProvider` searches up to two directory levels deep, so you can organise your 
+skills in sub-folders:
+
+```
+skills/
+├── expense-report/
+│   └── SKILL.md
+└── order-tracking/
+    └── SKILL.md
+```
+
+The skills provider implements the progressive-disclosure pattern: skill names and descriptions are 
+injected into the agent's system prompt, and the full instructions are only loaded when the agent 
+decides to use a skill via the `load_skill` tool.
+
 <!-- #content -->
 
 <!-- include https://github.com/devlooped/sponsors/raw/main/footer.md -->

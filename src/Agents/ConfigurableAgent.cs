@@ -116,6 +116,7 @@ public sealed partial class ConfigurableAgent : AIAgent, IHasAdditionalPropertie
             properties.Remove(nameof(ConfigurableAgentOptions.Client));
             properties.Remove(nameof(ConfigurableAgentOptions.Model));
             properties.Remove(nameof(ConfigurableAgentOptions.Use));
+            properties.Remove(nameof(ConfigurableAgentOptions.Skills));
             properties.Remove(nameof(ConfigurableAgentOptions.Tools));
             properties.Remove(nameof(ConfigurableAgentOptions.UseProvidedChatClientAsIs));
             properties.Remove(nameof(ConfigurableAgentOptions.ClearOnChatHistoryProviderConflict));
@@ -263,6 +264,20 @@ public sealed partial class ConfigurableAgent : AIAgent, IHasAdditionalPropertie
                 providers.Add(new StaticContextProvider(new AIContext { Tools = tools }, $"{section}[tools]", true) { });
         }
 
+        if (configured.Skills is { Count: > 0 })
+        {
+            foreach (var skill in configured.Skills)
+            {
+                if (skill != "*")
+                    throw new InvalidOperationException($"Invalid value '{skill}' in '{section}:skills'. The only supported value is '*'.");
+            }
+
+            providers.Add(new FileAgentSkillsProvider(
+                Path.Combine(AppContext.BaseDirectory, "skills"),
+                options: null,
+                services.GetService<ILoggerFactory>()));
+        }
+
         return providers;
     }
 
@@ -290,6 +305,7 @@ public sealed partial class ConfigurableAgent : AIAgent, IHasAdditionalPropertie
         //[JsonIgnore]
         public string? Model { get; set; }
         public IList<string>? Use { get; set; }
+        public IList<string>? Skills { get; set; }
         public IList<string>? Tools { get; set; }
         public bool UseProvidedChatClientAsIs { get; set; }
         public bool ClearOnChatHistoryProviderConflict { get; set; }
