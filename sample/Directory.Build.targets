@@ -15,8 +15,9 @@
     <Content Include="*.json;*.ini;*.toml;*.md" Exclude="@(Content)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <!--  and '$(UsingMicrosoftNETSdkWeb)' == 'true'" -->
   <ItemGroup Condition="'$(IsAspireHost)' != 'true'">
-    <Compile Include="$(MSBuildThisFileDirectory)ServiceDefaults.cs" Link="ServiceDefaults.cs" Visible="false" />
+    <Compile Include="$(MSBuildThisFileDirectory)ServiceDefaults.cs" Link="ServiceDefaults.cs"/>
   </ItemGroup>
 
 </Project>

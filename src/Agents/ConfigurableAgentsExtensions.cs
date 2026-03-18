@@ -98,7 +98,7 @@ public static class ConfigurableAgentsExtensions
 
             builder.AddAIAgent(name, (sp, key) =>
             {
-                var agent = new ConfigurableAIAgent(sp, section, key, configureOptions);
+                var agent = new ConfigurableAgent(sp, section, key, configureOptions);
 
                 if (configurePipeline is not null)
                 {
@@ -110,8 +110,7 @@ public static class ConfigurableAgentsExtensions
                 return agent;
             });
 
-            // Also register for case-insensitive lookup, but without duplicating the entry in 
-            // the AgentCatalog, since that will always resolve from above.
+            // Also register for case-insensitive lookup
             builder.Services.TryAdd(ServiceDescriptor.KeyedSingleton(new ServiceKey(name), (sp, key)
                 => sp.GetRequiredKeyedService<AIAgent>(name)));
         }
@@ -120,6 +119,6 @@ public static class ConfigurableAgentsExtensions
     }
 
     /// <summary>Gets an AI agent by name (case-insensitive) from the service provider.</summary>
-    public static AIAgent? GetIAAgent(this IServiceProvider services, string name)
+    public static AIAgent? GetAIAgent(this IServiceProvider services, string name)
         => services.GetKeyedService<AIAgent>(name) ?? services.GetKeyedService<AIAgent>(new ServiceKey(name));
 }

@@ -6,14 +6,12 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Tomlyn.Extensions.Configuration;
 
-
-
 #if WEB
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 #endif
 
-static class ConfigureOpenTelemetryExtensions
+static class ServiceDefaultsExtensions
 {
     const string HealthEndpointPath = "/health";
     const string AlivenessEndpointPath = "/alive";
@@ -33,6 +31,11 @@ static class ConfigureOpenTelemetryExtensions
 
 #if WEB
         builder.AddDefaultHealthChecks();
+        builder.Services.AddServiceDiscovery();
+        builder.Services.ConfigureHttpClientDefaults(http =>
+        {
+            http.AddServiceDiscovery();
+        });
 #endif
 
         return builder;
@@ -44,23 +47,14 @@ static class ConfigureOpenTelemetryExtensions
         var serviceName = builder.Environment.ApplicationName
             ?? throw new InvalidOperationException("Application name is not set in the hosting environment.");
 
+        builder.Logging.AddOpenTelemetry(logging =>
+        {
+            logging.IncludeFormattedMessage = true;
+            logging.IncludeScopes = true;
+        });
+
         builder.Services.AddOpenTelemetry()
             .ConfigureResource(rb => rb.AddService(serviceName))
-            .WithTracing(tracing =>
-            {
-#if WEB
-                tracing.AddAspNetCoreInstrumentation(tracing =>
-                    // Don't trace requests to the health endpoint to avoid filling the dashboard with noise
-                    tracing.Filter = httpContext =>
-                        !(httpContext.Request.Path.StartsWithSegments(HealthEndpointPath)
-                          || httpContext.Request.Path.StartsWithSegments(AlivenessEndpointPath)));
-#endif
-                tracing.AddHttpClientInstrumentation();
-
-                // Only add console exporter if explicitly enabled in configuration
-                if (builder.Configuration.GetValue<bool>("OpenTelemetry:ConsoleExporter"))
-                    tracing.AddConsoleExporter();
-            })
             .WithMetrics(metrics =>
             {
 #if WEB
@@ -68,6 +62,22 @@ static class ConfigureOpenTelemetryExtensions
 #endif
                 metrics.AddRuntimeInstrumentation();
                 metrics.AddHttpClientInstrumentation();
+            })
+            .WithTracing(tracing =>
+            {
+                tracing.AddSource(builder.Environment.ApplicationName)
+#if WEB
+                       .AddAspNetCoreInstrumentation(tracing =>
+                            // Don't trace requests to the health endpoint to avoid filling the dashboard with noise
+                            tracing.Filter = httpContext =>
+                                !(httpContext.Request.Path.StartsWithSegments(HealthEndpointPath)
+                                    || httpContext.Request.Path.StartsWithSegments(AlivenessEndpointPath)))
+#endif
+                       .AddHttpClientInstrumentation();
+
+                // Only add console exporter if explicitly enabled in configuration
+                if (builder.Configuration.GetValue<bool>("OpenTelemetry:ConsoleExporter"))
+                    tracing.AddConsoleExporter();
             });
 
 
