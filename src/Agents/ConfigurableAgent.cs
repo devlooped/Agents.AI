@@ -147,7 +147,7 @@ public sealed partial class ConfigurableAgent : AIAgent, IHasAdditionalPropertie
 
         var providerName = client.GetService<ChatClientMetadata>()?.ProviderName;
 
-        if (!string.IsNullOrEmpty(configuredOptions.Model))
+        if (runtimeOptions.ChatOptions?.ModelId is null && !string.IsNullOrEmpty(configuredOptions.Model))
             (runtimeOptions.ChatOptions ??= new()).ModelId = configuredOptions.Model;
 
         if (!string.IsNullOrWhiteSpace(configuredOptions.Instructions))
