@@ -55,7 +55,7 @@ foreach (var agentName in builder.Services.AsEnumerable()
 {
     var agent = app.Services.GetRequiredKeyedService<AIAgent>(agentName);
     if (agent.Name != null)
-        app.MapOpenAIResponses(agent, agent.Name);
+        app.MapOpenAIResponses(agent);
 }
 
 // Map the agents HTTP endpoints

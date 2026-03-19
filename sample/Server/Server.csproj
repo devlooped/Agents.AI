@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Devlooped.Extensions.AI" Version="2.0.2" />
-    <PackageReference Include="Devlooped.Extensions.AI.Console" Version="2.0.2" />
+    <PackageReference Include="Devlooped.Extensions.AI" Version="2.0.3" />
+    <PackageReference Include="Devlooped.Extensions.AI.Console" Version="2.0.3" />
     <PackageReference Include="Microsoft.Agents.AI.Hosting.OpenAI" Version="1.0.0-alpha.260311.1" />
     <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.4.0" />
     <PackageReference Include="ModelContextProtocol" Version="1.1.0" />
@@ -25,6 +25,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Agents\Agents.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="readme.md" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
   </ItemGroup>
 
 </Project>

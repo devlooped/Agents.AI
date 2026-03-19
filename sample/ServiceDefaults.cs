@@ -120,7 +120,7 @@ static class ServiceDefaultsExtensions
             foreach (var json in Directory.EnumerateFiles(baseDir, "*.json", SearchOption.AllDirectories).Where(IsSource))
                 builder.Configuration.AddJsonFile(json, optional: false, reloadOnChange: true);
 
-            foreach (var md in Directory.EnumerateFiles(baseDir, "*.md", SearchOption.AllDirectories).Where(IsSource))
+            foreach (var md in Directory.EnumerateFiles(baseDir, "*.md", SearchOption.AllDirectories).Where(IsSource).Where(x => File.ReadAllLines(x).FirstOrDefault() == "---"))
                 builder.Configuration.AddAgentMarkdown(md, optional: false, reloadOnChange: true);
         }
 
