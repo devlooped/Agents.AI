@@ -15,7 +15,7 @@ builder.Services.AddHttpClient()
 
 var app = builder.Build(async (IServiceProvider services, CancellationToken cancellation) =>
 {
-    var baseUrl = Environment.GetEnvironmentVariable("applicationUrl") ?? "http://localhost:5117";
+    var baseUrl = Environment.GetEnvironmentVariable("applicationUrl")?.TrimEnd('/') ?? "https://localhost:5117";
     var http = services.GetRequiredService<IHttpClientFactory>().CreateClient();
     var agents = await http.GetFromJsonAsync<AgentCard[]>($"{baseUrl}/agents", cancellation) ?? [];
 
@@ -30,11 +30,17 @@ var app = builder.Build(async (IServiceProvider services, CancellationToken canc
         .UseConverter(a => $"{a.Name}: {a.Description ?? ""}")
         .AddChoices(agents));
 
+#pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates. 
     var chat = new OpenAIClient(new ApiKeyCredential("none"), new OpenAIClientOptions
     {
         Endpoint = new Uri($"{baseUrl}/{selectedAgent.Name}/v1")
-    }).GetChatClient("default").AsIChatClient().AsBuilder()
-    .UseOpenTelemetry().UseJsonConsoleLogging().Build(services);
+    }.UseJsonConsoleLogging()) // 👈 uses lowest-level HTTP pipeline logging for maximum fidelity
+    .GetResponsesClient()
+    .AsIChatClient()
+#pragma warning restore OPENAI001
+    .AsBuilder()
+    .UseOpenTelemetry()
+    .Build(services);
 
     var history = new List<ChatMessage>();
 
