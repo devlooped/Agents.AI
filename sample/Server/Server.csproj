@@ -10,7 +10,7 @@
     <PackageReference Include="Devlooped.Extensions.AI.Console" Version="2.0.3" />
     <PackageReference Include="Microsoft.Agents.AI.Hosting.OpenAI" Version="1.0.0-alpha.260311.1" />
     <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.4.0" />
-    <PackageReference Include="ModelContextProtocol" Version="1.1.0" />
+    <PackageReference Include="ModelContextProtocol" Version="1.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="ThisAssembly.Project" Version="2.1.2" PrivateAssets="all" />
     <PackageReference Include="Tomlyn.Extensions.Configuration" Version="1.0.6" />
